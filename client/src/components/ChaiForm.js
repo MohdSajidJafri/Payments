@@ -51,6 +51,10 @@ const ChaiForm = ({ session, onChaiAdded }) => {
         name: "Buy Me a Chai",
         description: `${chaiCount} Chai${chaiCount > 1 ? 's' : ''}`,
         order_id: orderData.id,
+        // Disable features that might not be supported in all browsers
+        features: {
+          'otp-credentials': false
+        },
         handler: async function (response) {
           try {
             // Verify payment on the backend
@@ -97,14 +101,20 @@ const ChaiForm = ({ session, onChaiAdded }) => {
         }
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-      
-      // Handle Razorpay modal close
-      rzp.on('payment.failed', function (response) {
-        toast.error('Payment failed. Please try again.');
-        console.error('Payment failed:', response.error);
-      });
+      try {
+        console.log('Initializing Razorpay with options:', JSON.stringify(options));
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+        
+        // Handle Razorpay modal close
+        rzp.on('payment.failed', function (response) {
+          toast.error('Payment failed. Please try again.');
+          console.error('Payment failed:', response.error);
+        });
+      } catch (razorpayError) {
+        console.error('Razorpay initialization error:', razorpayError);
+        toast.error('Payment gateway initialization failed. Please try again later.');
+      }
       
     } catch (error) {
       console.error('Error creating order:', error);
