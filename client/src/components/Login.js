@@ -8,21 +8,33 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Attempting Google login...');
+      
+      // Get the current URL for redirect
+      const currentUrl = window.location.origin;
+      console.log('Current origin:', currentUrl);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'http://localhost:3000',
+          redirectTo: currentUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
           },
         },
       });
+      
+      console.log('Auth response data:', data);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase auth error:', error);
+        throw error;
+      }
     } catch (error) {
       console.error('Error logging in with Google:', error);
-      toast.error('Failed to sign in with Google');
+      console.error('Error details:', error.message, error.stack);
+      toast.error(`Failed to sign in with Google: ${error.message}`);
     } finally {
       setLoading(false);
     }
