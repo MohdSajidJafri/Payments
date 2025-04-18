@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
+  const [authUrl, setAuthUrl] = useState(null);
+  
+  useEffect(() => {
+    // Log Supabase URL and key (without exposing full key)
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const anonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+    
+    console.log('Supabase URL:', supabaseUrl);
+    console.log('Anon Key available:', !!anonKey);
+    console.log('Current origin:', window.location.origin);
+  }, []);
 
   const handleGoogleLogin = async () => {
     try {
@@ -14,6 +25,7 @@ const Login = () => {
       const currentUrl = window.location.origin;
       console.log('Current origin:', currentUrl);
       
+      // First try with the current URL
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -26,6 +38,13 @@ const Login = () => {
       });
       
       console.log('Auth response data:', data);
+      
+      // If we get a URL back, we can redirect manually
+      if (data?.url) {
+        console.log('Redirecting to:', data.url);
+        window.location.href = data.url;
+        return;
+      }
 
       if (error) {
         console.error('Supabase auth error:', error);
