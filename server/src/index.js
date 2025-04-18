@@ -20,8 +20,26 @@ app.use(express.urlencoded({ extended: true }));
 
 // Configure CORS
 app.use(cors({
-  origin: process.env.CORS_ORIGIN,
-  methods: ['GET', 'POST'],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if(!origin) return callback(null, true);
+    
+    // Check if the origin is allowed
+    const allowedOrigins = [
+      process.env.CORS_ORIGIN,
+      'http://localhost:3000',
+      'https://payments-nfvvdw2w9-mohd-sajid-jafris-projects.vercel.app',
+      'https://payments-red-three.vercel.app'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      log('warn', `Origin ${origin} not allowed by CORS`);
+      callback(null, true); // Temporarily allow all origins
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
